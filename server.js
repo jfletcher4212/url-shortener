@@ -10,6 +10,7 @@ var express = require('express');
 var db = require('./database');
 var app = express();
 
+
 var uriFormat = new RegExp(/\w+/);
 
 if (!process.env.DISABLE_XORIGIN) {
@@ -40,17 +41,25 @@ app.route('/')
     .get(function(req, res) {
 		  res.sendFile(process.cwd() + '/views/index.html');
     })
-app.route('/test/:id')
+app.route('/goto/:id')
     .get(function(req, res) {
-      console.log(req.params.id);
-      res.send('Done');
+      db.async.goto(req.params.id).then(function(result){
+        res.redirect(result);
+        //res.send(result);
+      }).catch(function(err){
+        res.send(err);
+      });
+      //res.send('Redirecting to ' + req.params.id);
 });
 // /new/:url
 app.route(/^\/new\/(.+)/)
     .get(function(req, res) {
       console.log("begin test");
-      var url = db.async.newEntry(req.params[0]);
-      res.send("Placeholder");
+      var url = db.async.insert(req.params[0]).then(function(result) {
+        res.send(result);
+      }).catch( function(err) {
+        res.send(err);
+      });
 })
 
 // Respond not found to all the wrong routes
