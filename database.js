@@ -8,44 +8,25 @@ var MONGODB_URI = 'mongodb://'+process.env.USER+':'+process.env.PASS+'@'+process
 var collection;
 
 
-      /*use cases:
-          0. Check for valid URL format
+      /*
+        use cases:
+          0. Check for valid URL format (done in server.js, see the '/new/' route
           1a. Check if URL already inserted in DB
           1b. insert url/shortenedurl pair, skip if already inserted
           2. return JSON pair {url, shortened_url}
-      */
+       */
+
 /*
-function newEntry(url){
-  //testing connecting to the database
-  console.log(url);
-  mongodb.connect(MONGODB_URI, function(err, mongoClient){
-    if(err) {
-      console.log("had a problem, boss");
-      console.log(MONGODB_URI);
-    }
-    else {
-      console.log("Connected successfully");
-      var db = mongoClient.db(process.env.DBNAME);
-      //console.log(urls.collection('urls'))
-      
-      //URL.valid
-      
-      //Assume URL valid for now
-      db.collection('urls').find({url: url}).toArray(function(err, docs){
-        console.log("Found: " + docs.length + " entries");
-        mongoClient.close();
-        //return docs[0];
-      });
-}
-  })};
-*/
+  known potential issue with insertion: two strings can have the same hash digest substring. 
+  Could solve by comparing retrieved entry's url with url we want to add, then manipulate string (ex. change slightly), then call insert again
+ */
 function insert(url){
   console.log(url);
   var hash = crypto.createHash('sha256');
-  var short_url = hash.update(url).digest('hex').slice(0, 9); //add to database as part of {url, short_url} pair
+  var short_url = hash.update(url).digest('hex').slice(0, 9); //adding this to database as part of {url, short_url} pair
   var promise = new Promise(function(resolve, reject){
-    //do async stuff within promise
     
+    //do asynchronous lookups within promise
     mongodb.connect(MONGODB_URI, function(err, mongoClient){
       if(!err){ //Successfully connected
         var db = mongoClient.db(process.env.DBNAME);
@@ -53,16 +34,16 @@ function insert(url){
           if( !err ) {
             if(docs.length == 0) {
               db.collection('urls').insert({url: url, short_url: short_url}, function(err, res) {
-                if(err){
-                  reject(Error("Could not insert new url into database."));
-                }
-                else{
+                if(!err){
                   console.log("Inserted new url to database.");
                   resolve({url: url, short_url: short_url});
                 }
+                else{
+                  reject(Error("Could not insert new url into database."));
+                }
               });
             }
-            else{
+            else{ //url already exists in database
               resolve(docs[0]);
             }
           } else {
@@ -78,6 +59,7 @@ function insert(url){
   return promise;
 };
 
+/*looks up the shortened url in the database and redirects the user's broswer to the original url*/
 function goto(short_url){
   var promise = new Promise(function(resolve, reject){
     mongodb.connect(MONGODB_URI, function(err, mongoClient){
@@ -90,14 +72,12 @@ function goto(short_url){
             reject(Error("Could not connect to DB"));
           } else {
             if(docs.length == 0){
-              //reject(Error("No matching URL found"));
               reject("No matching URL found");
             } else {
               resolve(docs[0].url);
             }
           }
         });
-        //resolve("connected successfully");
       }
     });
   });
