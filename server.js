@@ -10,8 +10,11 @@ var express = require('express');
 var db = require('./database');
 var app = express();
 
-
-var uriFormat = new RegExp(/\w+/);
+const uriScheme = "^[a-zA-Z][a-zA-Z0-9+.-]*:";
+const domainLabel = "[a-zA-Z0-9][a-zA-Z0-9_-]*"
+const domainName = "\/\/" + domainLabel + "(\." + domainLabel + ")*"
+const uriPath = "((\/[^/].*)|\/)"
+const uriFormat = new RegExp(uriScheme + domainName + uriPath + "$" );
 
 if (!process.env.DISABLE_XORIGIN) {
   app.use(function(req, res, next) {
@@ -41,26 +44,29 @@ app.route('/')
     .get(function(req, res) {
 		  res.sendFile(process.cwd() + '/views/index.html');
     })
+
 app.route('/goto/:id')
-    .get(function(req, res) {
-      db.async.goto(req.params.id).then(function(result){
-        res.redirect(result);
-        //res.send(result);
-      }).catch(function(err){
-        res.send(err);
-      });
-      //res.send('Redirecting to ' + req.params.id);
+    .get(function(req, res) {     
+        db.async.goto(req.params.id).then(function(result){
+          res.redirect(result);
+        }).catch(function(err){
+          res.send(err);
+        });
 });
-// /new/:url
-app.route(/^\/new\/(.+)/)
+
+//app.route('/new/url')
+app.route(/\/new\/(.+)/)
     .get(function(req, res) {
-      console.log("begin test");
-      var url = db.async.insert(req.params[0]).then(function(result) {
-        res.send(result);
-      }).catch( function(err) {
-        res.send(err);
-      });
-})
+      if(uriFormat.test(req.params[0])){ //params[0] consists of everything after '/new/'
+        var url = db.async.insert(req.params[0]).then(function(result) {
+          res.send(result);
+        }).catch( function(err) {
+          res.send(err);
+        });
+      } else {
+         res.send("Invalid URL");
+      }
+});
 
 // Respond not found to all the wrong routes
 app.use(function(req, res, next){
