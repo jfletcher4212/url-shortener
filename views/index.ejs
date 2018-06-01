@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+   <head>
+      <title>URL Shortener</title>
+      <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" type="text/css">
+      <link href="/public/style.css" rel="stylesheet" type="text/css">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/css/materialize.min.css">
+   </head>
+
+   <body>
+      <div class="container">
+         <h1>URL Shortener Microservice</h1>
+      </div>
+     
+       <div class="box floaty">
+        <h3>
+          Usage:
+        </h3>
+        <ul>
+          <li>Pass a URL below and receive a shortened URL in the JSON response.</li>
+          <li>When the shortened URL is used, it will redirect to the original link.</li>
+          <li class="word-wrap">Example: <br><a href="https://jfletcher-urlshortener.glitch.me/api/shorturl/920f69f99">https://jfletcher-urlshortener.glitch.me/api/shorturl/920f69f99</a> 
+            will redirect to <a href="https://glitch.com/">https://glitch.com/</a></li>
+          <li>If an invalid URL or nonexistant shortened URL is given, an error will be returned.</li>
+        </ul>
+      </div>
+      <form class="input-form" action="/api/shorturl/new/" method="post">
+        <div class="btn grey">
+           <span>Url:</span> 
+        </div>
+        <input id="short-url" type="text" name="shortUrl" placeholder="Enter here">
+        <button type="submit" class="btn">Submit</button>
+      </form>
+     <div class="box floaty">
+            
+     </div>
+   </body>
+
+ <script
+    src="https://code.jquery.com/jquery-3.3.1.min.js"
+    integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
+  
+</html>

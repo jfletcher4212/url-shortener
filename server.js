@@ -10,11 +10,22 @@ var express = require('express');
 var db = require('./database');
 var app = express();
 
+const bodyParser = require('body-parser');
+const dns = require('dns');
+const ejs = require('ejs');
+const cors = require('cors');
+
 const uriScheme = "^[a-zA-Z][a-zA-Z0-9+.-]*:";
 const domainLabel = "[a-zA-Z0-9][a-zA-Z0-9_-]*"
 const domainName = "\/\/" + domainLabel + "(\." + domainLabel + ")*"
 const uriPath = "((\/[^/].*)|\/)"
 const uriFormat = new RegExp(uriScheme + domainName + uriPath + "$" );
+
+app.use(cors());
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.json());
+
+app.set('view engine', 'ejs');
 
 if (!process.env.DISABLE_XORIGIN) {
   app.use(function(req, res, next) {
@@ -42,10 +53,10 @@ app.route('/_api/package.json')
   
 app.route('/')
     .get(function(req, res) {
-		  res.sendFile(process.cwd() + '/views/index.html');
+        res.render('./index.ejs');
     })
 
-app.route('/goto/:id')
+app.route('/api/shorturl/:id')
     .get(function(req, res) {     
         db.async.goto(req.params.id).then(function(result){
           res.redirect(result);
@@ -54,18 +65,39 @@ app.route('/goto/:id')
         });
 });
 
-//app.route('/new/url')
-app.route(/\/new\/(.+)/)
-    .get(function(req, res) {
-      if(uriFormat.test(req.params[0])){ //params[0] consists of everything after '/new/'
-        var url = db.async.insert(req.params[0]).then(function(result) {
-          res.send(result);
-        }).catch( function(err) {
-          res.send(err);
-        });
-      } else {
-         res.send("Invalid URL");
-      }
+app.route('/api/shorturl/new/') //need to parse hostname without scheme (ex. https://) "{[a-zA-Z]+://"
+  .post(function(req, res) {
+  if(!req.body.shortUrl){
+    res.json({error: "No url given"});
+    return
+  }
+  /*parse; we split twice, once to remove :// at the start of hostname, 
+  and once to remove / at end of hostname*/
+  
+  let url = req.body.shortUrl.split("://", 2);
+  let hostname = "";
+  if(url.length === 2) {
+    hostname = url[1].split("/", 1);
+  } else {
+    hostname = url[0].split("/", 1);
+  }
+
+  dns.lookup(hostname[0], (err, address, family) => {
+    if(err) {
+      res.json({error: "Invalid URL"});
+    }
+    else { 
+      /*note: although we check if the hostname is valid, the rest is unchecked.
+          It is up to the user to ensure they use the proper scheme and path.
+      */
+      db.async.insert(req.body.shortUrl).then( (result) => {
+        res.send(result);
+      }).catch( (err) => {
+        res.json({error: "Invalid URL"});
+      });
+    }
+  });
+  
 });
 
 // Respond not found to all the wrong routes
