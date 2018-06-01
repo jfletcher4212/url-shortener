@@ -8,13 +8,16 @@
 
 #### Example input:
 `https://www.google.com/`  
-``
 
 #### Example output:
-``
-
-#### Usage:
-`https://jfletcher-urlshortener.glitch.me/`
+```
+{
+    "url": "https://www.google.com/",
+    "short_url": "d0e196a0c"
+}
+```
+#### Using the shortened URL:
+`https://jfletcher-urlshortener.glitch.me/api/shorturl/d0e196a0c`
 
 #### Redirects to:
 `https://www.google.com/`
