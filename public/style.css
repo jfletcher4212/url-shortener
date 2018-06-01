@@ -17,6 +17,38 @@ body {
 	margin-top: 60px;
 }
 
+.box {
+  border-style: solid;
+  border-width: 2px;
+  width: 75%;
+  margin: auto;
+}
+.input-form {
+  border-style: solid;
+  border-width: 2px;
+  border-color: #404040;
+  padding: 15px;
+  width: 75%;
+  margin: auto;
+}
+.word-wrap {
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+
+.example {
+  display: inline;
+  color: #C00;
+  background-color: #DADADA;
+}
+
+#short-url {
+  width: 30%;
+}
+
 ol {
 	list-style-position: inside;
 }
